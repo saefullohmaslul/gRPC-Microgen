@@ -2,7 +2,7 @@ import capitalize from 'capitalize'
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
-import { protoParser } from './lib/proto-parser'
+import { protoParser } from './lib/proto-parser.lib'
 import { IProtoParser } from './interface/proto-parser.interface'
 
 const SRC_PATH = join(__dirname, '..', 'src')

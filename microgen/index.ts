@@ -1,7 +1,7 @@
 import cp from 'child_process'
 import { join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
-import logger from './lib/debugger'
+import logger from './lib/debugger.lib'
 
 import Generator from './generator'
 
