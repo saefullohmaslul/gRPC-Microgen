@@ -1,10 +1,18 @@
-import cp from 'child_process'
 import { copySync, writeFileSync } from 'fs-extra'
 import { existsSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { SRC_PATH } from './global/constant'
+import GeneratorServer from './generator-server'
+import capitalize from 'capitalize'
+import { IProtoSchema } from './interface/proto-schema.interface'
 
 export default class GenerateApp {
+  private schemaParsed: IProtoSchema[]
+
+  constructor() {
+    this.schemaParsed = new GeneratorServer().schemaParsed()
+  }
+
   private copyFile() {
     if (!existsSync(join(SRC_PATH, 'utils'))) {
       mkdirSync(join(SRC_PATH, 'utils'))
@@ -27,6 +35,13 @@ export default class GenerateApp {
     content += `const container = new Container()\n\n`
     content += `container.bind<Application>(Application).toSelf()\n`
     content += `container.bind<MongoConnection>(MongoConnection).toSelf()\n\n`
+    this.schemaParsed.map(parser => {
+      const packageName = parser.package
+      const serviceName = capitalize(packageName)
+      content += `import Grpc${serviceName}Service from '@app/grpc/${packageName}/${packageName}-service'\n`
+      content += `container.bind<Grpc${serviceName}Service>(Grpc${serviceName}Service).toSelf()\n\n`
+
+    })
     content += `export default container\n`
 
     writeFileSync(join(SRC_PATH, 'utils', 'dependency-injection', 'index.ts'), content)
@@ -55,11 +70,19 @@ export default class GenerateApp {
   private createIndex() {
     let content = ''
     content += `import 'module-alias/register'\n`
-    content += `import 'reflect-metadata'`
+    content += `import 'reflect-metadata'\n`
     content += `import Application from '@app/app/server/application'\n`
     content += `import container from '@app/utils/dependency-injection'\n\n`
-    content += `const application: Application = container.resolve(Application)\n\n`
-    content += `application.initialize()\n`
+    content += `const application: Application = container.resolve(Application)\n`
+    content += `application.initialize()\n\n`
+    this.schemaParsed.map(parser => {
+      const packageName = parser.package
+      const serviceName = capitalize(packageName)
+      content += `import gRPC${serviceName}Server from '@app/grpc/${packageName}'\n`
+      content += `const grpc${serviceName}Server: gRPC${serviceName}Server = container.resolve(gRPC${serviceName}Server)\n`
+      content += `grpc${serviceName}Server.initialize()\n\n`
+    })
+
 
     writeFileSync(join(SRC_PATH, 'index.ts'), content)
   }

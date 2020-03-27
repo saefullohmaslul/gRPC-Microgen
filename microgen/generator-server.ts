@@ -4,8 +4,8 @@ import { join } from 'path'
 
 import { protoParser } from './lib/proto-parser.lib'
 import { IProtoParser } from './interface/proto-parser.interface'
-
-const SRC_PATH = join(__dirname, '..', 'src')
+import { SRC_PATH } from './global/constant'
+import { IProtoSchema } from './interface/proto-schema.interface'
 
 export default class GeneratorServer {
   private schemaDirectory: string
@@ -76,6 +76,39 @@ export default class GeneratorServer {
       content += `}`
 
       writeFileSync(join(SRC_PATH, 'grpc', parser.package, `${parser.package}-service.ts`), content)
+    })
+  }
+
+  public createIndexServices() {
+    this.createClassServices()
+    this.schemaParsed().map((parser: IProtoSchema) => {
+      let content = ''
+      const packageName = parser.package
+      const serviceName = capitalize(parser.package)
+      const service = `${serviceName}Service`
+
+      content += `import grpc from 'grpc'\n`
+      content += `import { injectable, inject } from 'inversify'\n\n`
+      content += `import { logger } from '@app/app/lib'\n`
+      content += `import { ${serviceName}ServiceService } from '@app/proto/${packageName}/${packageName}_grpc_pb'\n`
+      content += `import ${service} from '@app/grpc/${packageName}/${packageName}-service'\n\n`
+      content += `@injectable()\n`
+      content += `export default class gRPC${serviceName}Server {\n`
+      content += `  private server: grpc.Server\n\n`
+      content += `  constructor(\n`
+      content += `    @inject(${service}) gRPC${service}: ${service}\n`
+      content += `  ) {\n`
+      content += `    this.server = new grpc.Server()\n`
+      content += `    this.server.addService(${service}Service, gRPC${service})\n`
+      content += `  }\n\n`
+      content += `  public initialize() {\n`
+      content += `    this.server.bind('0.0.0.0:3001', grpc.ServerCredentials.createInsecure())\n`
+      content += `    this.server.start()\n`
+      content += `    logger.log('gRPC ${service} started, listening: localhost:3001')\n`
+      content += `  }\n`
+      content += `}\n`
+
+      writeFileSync(join(SRC_PATH, 'grpc', packageName, `index.ts`), content)
     })
   }
 }

@@ -42,8 +42,7 @@
     }
   },
   "include": [
-    "./src/**/*",
-    "./microgen/**/*"
+    "./src/**/*"
   ],
   "exclude": [
     "node_modules"

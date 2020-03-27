@@ -15,12 +15,13 @@ const main = () => {
     cp.exec(join(__dirname, '..', 'scripts', 'generate-protoc.sh'))
 
     const generatorServer = new GeneratorServer()
-    generatorServer.createClassServices()
+    generatorServer.createIndexServices()
     const generatorApp = new GeneratorApp()
     generatorApp.generateApp()
     const generateDatabase = new GeneratorDatabase()
     generateDatabase.model()
   } catch (error) {
+    console.log(error)
     logger.log(`Error: ${error}`)
   }
 }
