@@ -7,7 +7,7 @@ import { IProtoParser } from './interface/proto-parser.interface'
 
 const SRC_PATH = join(__dirname, '..', 'src')
 
-export default class Generator {
+export default class GeneratorServer {
   private schemaDirectory: string
   private protoParser: (dirname: string) => IProtoParser
 
@@ -20,7 +20,7 @@ export default class Generator {
     return this.protoParser(this.schemaDirectory).schemas
   }
 
-  private schemaParsed() {
+  public schemaParsed() {
     return this.protoParser(this.schemaDirectory).parsers
   }
 
@@ -48,18 +48,29 @@ export default class Generator {
 
       content = `import grpc from 'grpc'\n\n`
       content += `import { `
-      parser.messages.map(message => {
-        content += `${message.name}, `
+      parser.messages.map((message, index) => {
+        content += index === parser.messages.length - 1 ? `${message.name} ` : `${message.name}, `
       })
       content += `} from '@app/proto/${parser.package}/${parser.package}_pb'\n`
       content += `import { injectable } from 'inversify'\n\n`
       content += `@injectable()\n`
       content += `export default class Grpc${capitalize(parser.package)}Service {\n`
       methods.map((method, index) => {
+        const fields = parser.messages.filter(val => val.name === method.output_type)[0].fields
+
         content += `  public ${method.name}(\n`
         content += `    call: grpc.ServerUnaryCall<${method.input_type}>,\n`
         content += `    cb: grpc.sendUnaryData<${method.output_type}>\n`
         content += `  ) {\n`
+        content += `    try {\n`
+        content += `      const ${method.output_type.toLowerCase()} = new ${method.output_type}()\n\n`
+        fields.map(field => {
+          content += `      ${method.output_type.toLowerCase()}.set${capitalize(field.name)}()\n`
+        })
+        content += `\n      cb(null, ${method.output_type.toLowerCase()})\n`
+        content += `    } catch (error) {\n`
+        content += `      cb(error, null)\n`
+        content += `    }\n`
         content += index === methods.length - 1 ? `  }\n` : `  }\n\n`
       })
       content += `}`

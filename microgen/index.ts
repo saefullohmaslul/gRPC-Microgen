@@ -3,7 +3,9 @@ import { join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
 import logger from './lib/debugger.lib'
 
-import Generator from './generator'
+import GeneratorServer from './generator-server'
+import GeneratorApp from './generator-app'
+import GeneratorDatabase from './generator-database'
 
 const main = () => {
   try {
@@ -12,8 +14,12 @@ const main = () => {
     cp.exec(`chmod +x ${join(__dirname, '..', 'scripts', 'generate-protoc.sh')}`)
     cp.exec(join(__dirname, '..', 'scripts', 'generate-protoc.sh'))
 
-    const generator = new Generator()
-    generator.createClassServices()
+    const generatorServer = new GeneratorServer()
+    generatorServer.createClassServices()
+    const generatorApp = new GeneratorApp()
+    generatorApp.generateApp()
+    const generateDatabase = new GeneratorDatabase()
+    generateDatabase.model()
   } catch (error) {
     logger.log(`Error: ${error}`)
   }
