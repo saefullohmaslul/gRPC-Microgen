@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import config from '../app/config'
+import config from '@app/app/config'
 import { injectable } from 'inversify'
 
 @injectable()

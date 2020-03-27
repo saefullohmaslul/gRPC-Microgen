@@ -44,7 +44,8 @@ export default class GenerateApp {
       const serviceName = capitalize(packageName)
       content += `import Grpc${serviceName}Service from '@app/grpc/${packageName}/${packageName}-service'\n`
       content += `container.bind<Grpc${serviceName}Service>(Grpc${serviceName}Service).toSelf()\n\n`
-
+      content += `import ${serviceName}Repository from '@app/repositories/${packageName}.repository'\n`
+      content += `container.bind<${serviceName}Repository>(${serviceName}Repository).toSelf()\n\n`
     })
     content += `export default container\n`
 
@@ -131,15 +132,15 @@ export default class GenerateApp {
     this.schemaParsed.map(parser => {
       const packageName = parser.package
       const serviceName = capitalize(packageName)
-      content += `import ${serviceName}Model, { I${serviceName}, ${serviceName}Type } from './models/${packageName}.model'\n`
+      content += `import ${serviceName}Model, { I${serviceName}, ${serviceName}Type } from '@app/database/models/${packageName}.model'\n`
     })
     content += `export {\n`
     this.schemaParsed.map(parser => {
       const packageName = parser.package
       const serviceName = capitalize(packageName)
-      content += `${serviceName}Model,\n`
-      content += `I${serviceName},\n`
-      content += `${serviceName}Type,\n`
+      content += `  ${serviceName}Model,\n`
+      content += `  I${serviceName},\n`
+      content += `  ${serviceName}Type,\n`
     })
     content += `}`
 
