@@ -102,38 +102,23 @@ export default class GenerateApp {
     content += `  constructor(@unmanaged() model: Model<T>) {\n`
     content += `    this.model = model\n`
     content += `  }\n\n`
-    content += `  create(data: T): Promise<T> {\n`
+    content += `  async create(data: any): Promise<T> {\n`
     content += `    return this.model.create(data)\n`
     content += `  }\n\n`
-    content += `  update(condition: FilterQuery<T>, data: T): Promise<{ updatedCount?: number }> {\n`
-    content += `    return new Promise((resolve, reject) => {\n`
-    content += `      this.model.update(condition, data).then((res) => {\n`
-    content += `        resolve({\n`
-    content += `          updatedCount: res.ok\n`
-    content += `        })\n`
-    content += `      }).catch((e) => {\n`
-    content += `        reject(e)\n`
-    content += `      })\n`
-    content += `    })\n`
+    content += `  async update(condition: FilterQuery<T>, data: any): Promise<T | null> {\n`
+    content += `    return this.model.findOneAndUpdate(condition, data, { new: true })\n`
     content += `  }\n\n`
-    content += `  delete(condition: FilterQuery<T>): Promise<{ deletedCount?: number }> {\n`
-    content += `    return new Promise((resolve, reject) => {\n`
-    content += `      this.model.deleteOne(condition).then((res) => {\n`
-    content += `        resolve({\n`
-    content += `          deletedCount: res.deletedCount\n`
-    content += `        })\n`
-    content += `      }).catch((err) => {\n`
-    content += `        reject(err)\n`
-    content += `      })\n`
-    content += `    })\n`
+    content += `  async delete(condition: FilterQuery<T>) {\n`
+    content += `    return (await this.model.deleteOne(condition)).deletedCount\n`
     content += `  }\n\n`
-    content += `  find(param: FilterQuery<T>): DocumentQuery<T[] | [], T, {}> {\n`
-    content += `    return this.model.find(param)\n`
+    content += `  async find(param?: FilterQuery<T>): Promise<T[] | []> {\n`
+    content += `    if (param) return this.model.find(param)\n`
+    content += `    else return this.model.find()\n`
     content += `  }\n\n`
-    content += `  findOne(param: FilterQuery<T>): DocumentQuery<T | null, T, {}> {\n`
+    content += `  async findOne(param: FilterQuery<T>): Promise<T | null> {\n`
     content += `    return this.model.findOne(param)\n`
     content += `  }\n\n`
-    content += `  findById(id: string): DocumentQuery<T | null, T, {}> {\n`
+    content += `  async findById(id: string): Promise<T | null> {\n`
     content += `    return this.model.findById(id)\n`
     content += `  }\n`
     content += `}\n`

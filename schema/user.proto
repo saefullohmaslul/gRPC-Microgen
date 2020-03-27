@@ -4,7 +4,10 @@ package user;
 
 service UserService {
   rpc show(UserId) returns(User) {}
-  rpc store(NewUser) returns(Result) {}
+  rpc store(NewUser) returns(User) {}
+  rpc index(Blank) returns (Users) {}
+  rpc delete(UserId) returns(Result) {}
+  rpc update(User) returns(User) {}
 }
 
 message UserId {
@@ -26,4 +29,10 @@ message NewUser {
 
 message Result {
   bool status = 1;
+}
+
+message Blank {}
+
+message Users {
+  repeated User users = 1;
 }

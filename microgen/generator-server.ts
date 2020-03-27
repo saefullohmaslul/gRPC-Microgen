@@ -1,6 +1,7 @@
 import capitalize from 'capitalize'
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
+import { singular } from 'pluralize'
 
 import { protoParser } from './lib/proto-parser.lib'
 import { IProtoParser } from './interface/proto-parser.interface'
@@ -42,7 +43,9 @@ export default class GeneratorServer {
   public createClassServices() {
     this.createServiceFolder()
     this.schemaParsed().map(parser => {
-      const service = `${capitalize(parser.package)}Service`
+      const packageName = parser.package
+      const serviceName = capitalize(packageName)
+      const service = `${serviceName}Service`
       const methods = parser.services.filter(val => val.name === service)[0].methods
       let content: string
 
@@ -52,22 +55,90 @@ export default class GeneratorServer {
         content += index === parser.messages.length - 1 ? `${message.name} ` : `${message.name}, `
       })
       content += `} from '@app/proto/${parser.package}/${parser.package}_pb'\n`
-      content += `import { injectable } from 'inversify'\n\n`
+      content += `import ${serviceName}Repository from '@app/repositories/${packageName}.repository'\n`
+      content += `import { injectable, inject } from 'inversify'\n\n`
       content += `@injectable()\n`
-      content += `export default class Grpc${capitalize(parser.package)}Service {\n`
+      content += `export default class Grpc${service} {\n`
+      content += `  private ${packageName}Repository: ${serviceName}Repository\n`
+      content += `  constructor(\n`
+      content += `    @inject(${serviceName}Repository) ${packageName}Repository: ${serviceName}Repository\n`
+      content += `  ) {\n`
+      content += `    this.${packageName}Repository = ${packageName}Repository\n`
+      content += `  }\n\n`
       methods.map((method, index) => {
         const fields = parser.messages.filter(val => val.name === method.output_type)[0].fields
 
-        content += `  public ${method.name}(\n`
-        content += `    call: grpc.ServerUnaryCall<${method.input_type}>,\n`
+        content += `  public async ${method.name}(\n`
+        content += `    ${method.name === 'index' ? '_' : 'call'}: grpc.ServerUnaryCall<${method.input_type}>,\n`
         content += `    cb: grpc.sendUnaryData<${method.output_type}>\n`
         content += `  ) {\n`
         content += `    try {\n`
-        content += `      const ${method.output_type.toLowerCase()} = new ${method.output_type}()\n\n`
-        fields.map(field => {
-          content += `      ${method.output_type.toLowerCase()}.set${capitalize(field.name)}()\n`
-        })
-        content += `\n      cb(null, ${method.output_type.toLowerCase()})\n`
+        if (method.name === 'show') {
+          content += `      const id = call.request.getId()\n`
+          content += `      const data = await this.${packageName}Repository.findById(id)\n\n`
+          content += `      const ${method.output_type.toLowerCase()} = new ${method.output_type}()\n`
+          fields.map(field => {
+            content += `      ${method.output_type.toLowerCase()}.set${capitalize(field.name)}(data!.${field.name === 'id' ? '_id' : field.name})\n`
+          })
+          content += `\n      cb(null, ${method.output_type.toLowerCase()})\n`
+        } else if (method.name === 'store') {
+          const storeFields = parser.messages.filter(val => val.name === method.input_type)[0].fields
+          storeFields.map(field => {
+            content += `      const ${field.name} = call.request.get${capitalize(field.name)}()\n`
+          })
+          content += `\n      const data = await this.${packageName}Repository.create({\n`
+          storeFields.map(field => {
+            content += `        ${field.name},\n`
+          })
+          content += `      })\n\n`
+          content += `      const ${method.output_type.toLowerCase()} = new ${method.output_type}()\n`
+          fields.map(field => {
+            content += `      ${method.output_type.toLowerCase()}.set${capitalize(field.name)}`
+            switch (field.name) {
+              case 'status':
+                content += `(true)\n`
+                break
+              case 'id':
+                content += `(data!._id)\n`
+                break
+              default:
+                content += `(${`data!.${field.name}`})\n`
+                break
+            }
+          })
+          content += `\n      cb(null, ${method.output_type.toLowerCase()})\n`
+        } else if (method.name === 'index') {
+          content += `      const data = await this.${packageName}Repository.find()\n\n`
+          content += `      const ${method.output_type.toLowerCase()} = new ${method.output_type}()\n`
+          content += `      ${method.output_type.toLowerCase()}.set${method.output_type}List(data as ${singular(method.output_type)}[])\n`
+          content += `\n      cb(null, ${method.output_type.toLowerCase()})\n`
+        } else if (method.name === 'delete') {
+          content += `      const id = call.request.getId()\n`
+          content += `      await this.${packageName}Repository.delete({\n`
+          content += `        _id: id\n`
+          content += `      })\n\n`
+          content += `      const ${method.output_type.toLowerCase()} = new ${method.output_type}()\n`
+          fields.map(field => {
+            content += `      ${method.output_type.toLowerCase()}.set${capitalize(field.name)}(${field.name === 'status' ? true : ''})\n`
+          })
+          content += `\n      cb(null, ${method.output_type.toLowerCase()})\n`
+        } else {
+          fields.map(field => {
+            content += `      const ${field.name} = call.request.get${capitalize(field.name)}()\n`
+          })
+          content += `      const data = await this.${packageName}Repository.update({\n`
+          content += `        _id: id\n`
+          content += `      }, {\n`
+          fields.map(field => {
+            content += `        ${field.name},\n`
+          })
+          content += `      })\n\n`
+          content += `      const ${method.output_type.toLowerCase()} = new ${method.output_type}()\n`
+          fields.map(field => {
+            content += `      ${method.output_type.toLowerCase()}.set${capitalize(field.name)}(${field.name === 'id' ? 'data!._id' : `data!.${field.name}`})\n`
+          })
+          content += `\n      cb(null, ${method.output_type.toLowerCase()})\n`
+        }
         content += `    } catch (error) {\n`
         content += `      cb(error, null)\n`
         content += `    }\n`
