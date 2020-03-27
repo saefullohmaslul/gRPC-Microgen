@@ -6,12 +6,15 @@
   "scripts": {
     "test": "jest",
     "clean": "rimraf dist",
+    "clean:src": "rimraf src",
     "build": "tsc",
     "generate": "cross-env DEBUG=server* ts-node microgen",
     "start": "node .",
     "start:watch": "nodemon",
+    "prestart:dev": "npm run generate",
+    "prestart:prod": "npm run generate",
     "start:dev": "cross-env DEBUG=server* NODE_ENV=development npm run start:watch",
-    "start:prod": "cross-env DEBUG=server* NODE_ENV=production npm-run-all clean build start"
+    "start:prod": "cross-env DEBUG=server* NODE_ENV=production npm-run-all clean build clean:src start"
   },
   "_moduleAliases": {
     "@app": "./dist"
