@@ -1,6 +1,8 @@
 import mongoose from 'mongoose'
 import config from '../app/config'
+import { injectable } from 'inversify'
 
+@injectable()
 export default class MongoConnection {
   private url: string = config.db.uri as string
   public createConnection() {

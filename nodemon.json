@@ -1,0 +1,8 @@
+{
+  "watch": [
+    "src"
+  ],
+  "legacyWatch": true,
+  "ext": "ts",
+  "exec": "npm-run-all clean build start"
+}

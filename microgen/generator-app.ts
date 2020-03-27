@@ -54,6 +54,8 @@ export default class GenerateApp {
 
   private createIndex() {
     let content = ''
+    content += `import 'module-alias/register'\n`
+    content += `import 'reflect-metadata'`
     content += `import Application from '@app/app/server/application'\n`
     content += `import container from '@app/utils/dependency-injection'\n\n`
     content += `const application: Application = container.resolve(Application)\n\n`
