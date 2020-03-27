@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface Example {
+export interface IExample {
   fields: string
 }
 
@@ -8,7 +8,7 @@ const ExampleSchema = new Schema({
   schema: String
 })
 
-interface ExampleType extends Example, Document {
+export interface ExampleType extends IExample, Document {
   _id: string
 }
 

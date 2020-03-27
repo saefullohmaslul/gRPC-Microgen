@@ -24,6 +24,10 @@ export default class GenerateApp {
       mkdirSync(join(SRC_PATH, 'app', 'config'))
     }
 
+    if (!existsSync(join(SRC_PATH, 'repositories'))) {
+      mkdirSync(join(SRC_PATH, 'repositories'))
+    }
+
     copySync(join(__dirname, 'src'), join(__dirname, '..', 'src'))
   }
 
@@ -87,10 +91,100 @@ export default class GenerateApp {
     writeFileSync(join(SRC_PATH, 'index.ts'), content)
   }
 
+  private createRepository() {
+    let content = ''
+    content += `import { Model, FilterQuery, DocumentQuery, Document } from 'mongoose'\n`
+    content += `import { injectable, decorate, unmanaged } from 'inversify'\n\n`
+    content += `decorate(injectable(), Model)\n`
+    content += `@injectable()\n`
+    content += `export default class Repository<T extends Document> {\n`
+    content += `  model: Model<T>\n`
+    content += `  constructor(@unmanaged() model: Model<T>) {\n`
+    content += `    this.model = model\n`
+    content += `  }\n\n`
+    content += `  create(data: T): Promise<T> {\n`
+    content += `    return this.model.create(data)\n`
+    content += `  }\n\n`
+    content += `  update(condition: FilterQuery<T>, data: T): Promise<{ updatedCount?: number }> {\n`
+    content += `    return new Promise((resolve, reject) => {\n`
+    content += `      this.model.update(condition, data).then((res) => {\n`
+    content += `        resolve({\n`
+    content += `          updatedCount: res.ok\n`
+    content += `        })\n`
+    content += `      }).catch((e) => {\n`
+    content += `        reject(e)\n`
+    content += `      })\n`
+    content += `    })\n`
+    content += `  }\n\n`
+    content += `  delete(condition: FilterQuery<T>): Promise<{ deletedCount?: number }> {\n`
+    content += `    return new Promise((resolve, reject) => {\n`
+    content += `      this.model.deleteOne(condition).then((res) => {\n`
+    content += `        resolve({\n`
+    content += `          deletedCount: res.deletedCount\n`
+    content += `        })\n`
+    content += `      }).catch((err) => {\n`
+    content += `        reject(err)\n`
+    content += `      })\n`
+    content += `    })\n`
+    content += `  }\n\n`
+    content += `  find(param: FilterQuery<T>): DocumentQuery<T[] | [], T, {}> {\n`
+    content += `    return this.model.find(param)\n`
+    content += `  }\n\n`
+    content += `  findOne(param: FilterQuery<T>): DocumentQuery<T | null, T, {}> {\n`
+    content += `    return this.model.findOne(param)\n`
+    content += `  }\n\n`
+    content += `  findById(id: string): DocumentQuery<T | null, T, {}> {\n`
+    content += `    return this.model.findById(id)\n`
+    content += `  }\n`
+    content += `}\n`
+
+    writeFileSync(join(SRC_PATH, 'repositories', 'repository.ts'), content)
+  }
+
+  private createModelExported() {
+    let content = ''
+    this.schemaParsed.map(parser => {
+      const packageName = parser.package
+      const serviceName = capitalize(packageName)
+      content += `import ${serviceName}Model, { I${serviceName}, ${serviceName}Type } from './models/${packageName}.model'\n`
+    })
+    content += `export {\n`
+    this.schemaParsed.map(parser => {
+      const packageName = parser.package
+      const serviceName = capitalize(packageName)
+      content += `${serviceName}Model,\n`
+      content += `I${serviceName},\n`
+      content += `${serviceName}Type,\n`
+    })
+    content += `}`
+
+    writeFileSync(join(SRC_PATH, 'database', `index.ts`), content)
+  }
+
+  private createIndividualRepository() {
+    this.createRepository()
+    this.schemaParsed.map(parser => {
+      let content = ''
+      const packageName = parser.package
+      const serviceName = capitalize(packageName)
+
+      content += `import Repository from './repository'\n`
+      content += `import { ${serviceName}Model, ${serviceName}Type } from '@app/database'\n\n`
+      content += `export default class ${serviceName}Repository extends Repository<${serviceName}Type> {\n`
+      content += `  public model = ${serviceName}Model\n`
+      content += `}\n`
+
+      writeFileSync(join(SRC_PATH, 'repositories', `${packageName}.repository.ts`), content)
+    })
+
+  }
+
   public generateApp() {
     this.copyFile()
     this.createDI()
     this.createApplication()
     this.createIndex()
+    this.createModelExported()
+    this.createIndividualRepository()
   }
 }
