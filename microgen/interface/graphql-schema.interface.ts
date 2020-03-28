@@ -28,7 +28,8 @@ interface IField {
 interface IType {
   kind: string,
   name: IName,
-  loc: ILoc
+  loc: ILoc,
+  type: IType
 }
 
 interface IName {

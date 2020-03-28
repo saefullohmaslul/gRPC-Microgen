@@ -1,11 +1,13 @@
 import { parse } from 'graphql'
 import { join } from 'path'
-import { readFileSync, writeFileSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { IGraphqlSchema, IDefinition } from './interface/graphql-schema.interface'
-import { SCHEMA_PATH } from './global/constant'
+import { SCHEMA_PATH, PROTOS_PATH } from './global/constant'
 
 const graphqlFile = readFileSync(join(SCHEMA_PATH, 'schema.graphql')).toString()
 const graphqlParser: IGraphqlSchema = parse(graphqlFile) as IGraphqlSchema
+
+const primitiveTypes = ['String', 'Number', 'Float', 'Double', 'Int', 'Boolean']
 
 graphqlParser.definitions.map((definition: IDefinition) => {
   let content: string = ''
@@ -26,12 +28,25 @@ graphqlParser.definitions.map((definition: IDefinition) => {
   content += `message ${serviceName} {\n`
   content += `  string id = 1;\n`
   definition.fields.map((field, index) => {
-    content += `  ${field.type.name.value.toLowerCase()} ${field.name.value} = ${index + 2};\n`
+    if (field.type.name && primitiveTypes.includes(field.type.name.value)) {
+      content += `  ${field.type.name.value.toLowerCase()} ${field.name.value} = ${index + 2};\n`
+    } else if (field.type.name) {
+      content += `  string ${field.name.value}Id = ${index + 2};\n`
+    } else {
+      console.log(field.type)
+      // content += `  ${field.type.type.name.value.toLowerCase()} ${field.name.value} = ${index + 2};\n`
+    }
   })
   content += `}\n\n`
   content += `message New${serviceName} {\n`
   definition.fields.map((field, index) => {
-    content += `  ${field.type.name.value.toLowerCase()} ${field.name.value} = ${index + 1};\n`
+    if (field.type.name && primitiveTypes.includes(field.type.name.value)) {
+      content += `  ${field.type.name.value.toLowerCase()} ${field.name.value} = ${index + 1};\n`
+    } else if (field.type.name) {
+      content += `  string ${field.name.value}Id = ${index + 1};\n`
+    } else {
+      // content += `  ${field.type.type.name.value.toLowerCase()} ${field.name.value} = ${index + 1};\n`
+    }
   })
   content += `}\n\n`
   content += `message Result {\n`
@@ -44,5 +59,8 @@ graphqlParser.definitions.map((definition: IDefinition) => {
   content += `  repeated ${serviceName} ${serviceName.toLowerCase()}s = 1;\n`
   content += `}`
 
-  writeFileSync(join(SCHEMA_PATH, `${serviceName.toLowerCase()}.proto`), content)
+  if (!existsSync(PROTOS_PATH)) {
+    mkdirSync(PROTOS_PATH)
+  }
+  writeFileSync(join(PROTOS_PATH, `${serviceName.toLowerCase()}.proto`), content)
 })

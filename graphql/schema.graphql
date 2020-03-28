@@ -1,0 +1,17 @@
+type Post {
+  text: String
+  comments: [Comment]
+  user: User
+}
+
+type Comment {
+  text: String
+  post: Post
+  user: User
+}
+
+type User {
+  name: String
+  email: String
+  password: String
+}
