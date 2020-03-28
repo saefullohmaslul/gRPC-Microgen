@@ -3,16 +3,15 @@ import { join } from 'path'
 import capitalize from 'capitalize'
 
 import GeneratorServer from "./generator-server"
-import { IProtoSchema } from './interface/proto-schema.interface'
 
 export default class GeneratorDatabase {
-  private schemaParsed: IProtoSchema[]
+  private generatorServer: GeneratorServer
   constructor() {
-    this.schemaParsed = new GeneratorServer().schemaParsed()
+    this.generatorServer = new GeneratorServer()
   }
 
   model() {
-    this.schemaParsed.map(parser => {
+    this.generatorServer.schemaParsed().map(parser => {
       const model = readFileSync(join(__dirname, 'example', 'models', 'example.model.ts'))
       const fields = parser.messages.filter(val => val.name === capitalize(parser.package))[0]?.fields
       let interfaceFields: string = ''

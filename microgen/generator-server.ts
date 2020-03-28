@@ -23,6 +23,9 @@ export default class GeneratorServer {
   }
 
   public schemaParsed() {
+    if (!existsSync(this.schemaDirectory)) {
+      mkdirSync(this.schemaDirectory)
+    }
     return this.protoParser(this.schemaDirectory).parsers
   }
 

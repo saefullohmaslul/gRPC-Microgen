@@ -1,16 +1,15 @@
-import { copySync, writeFileSync } from 'fs-extra'
-import { existsSync, mkdirSync } from 'fs'
+import { copySync } from 'fs-extra'
+import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { SRC_PATH } from './global/constant'
 import GeneratorServer from './generator-server'
 import capitalize from 'capitalize'
-import { IProtoSchema } from './interface/proto-schema.interface'
 
 export default class GenerateApp {
-  private schemaParsed: IProtoSchema[]
+  private generatorServer: GeneratorServer
 
   constructor() {
-    this.schemaParsed = new GeneratorServer().schemaParsed()
+    this.generatorServer = new GeneratorServer()
   }
 
   private copyFile() {
@@ -39,7 +38,7 @@ export default class GenerateApp {
     content += `const container = new Container()\n\n`
     content += `container.bind<Application>(Application).toSelf()\n`
     content += `container.bind<MongoConnection>(MongoConnection).toSelf()\n\n`
-    this.schemaParsed.map(parser => {
+    this.generatorServer.schemaParsed().map(parser => {
       const packageName = parser.package
       const serviceName = capitalize(packageName)
       content += `import Grpc${serviceName}Service from '@app/grpc/${packageName}/${packageName}-service'\n`
@@ -55,32 +54,82 @@ export default class GenerateApp {
   private createApplication() {
     let content = ''
     content += `import { inject, injectable } from 'inversify'\n`
+    content += `import express, { Express } from 'express'\n`
+    content += `import { ApolloServer } from 'apollo-server-express'\n`
+    content += `import { createServer, Server } from 'http'\n`
+    content += `import schema from '@app/app/graphql/schema'\n`
     content += `import MongoConnection from '@app/database/connection.database'\n\n`
     content += `@injectable()\n`
     content += `export default class Application {\n`
     content += `  private mongoConnection: MongoConnection\n`
+    content += `  private server: ApolloServer\n`
+    content += `  private express: Express\n`
+    content += `  private httpServer: Server\n\n`
     content += `  constructor(\n`
     content += `    @inject(MongoConnection) mongoConnection: MongoConnection\n`
     content += `  ) {\n`
     content += `    this.mongoConnection = mongoConnection\n`
     content += `  }\n\n`
     content += `  public async initialize() {\n`
+    content += `    await this.createServer()\n`
+    content += `    await this.applyMiddleware(this.server, this.express)\n`
     content += `    await this.mongoConnection.createConnection()\n`
+    content += `  }\n\n`
+    content += `  public async createServer() {\n`
+    content += `    this.express = express()\n`
+    content += `    this.httpServer = createServer(this.express)\n`
+    content += `    this.server = new ApolloServer({\n`
+    content += `      schema\n`
+    content += `    })\n`
+    content += `  }\n\n`
+    content += `  public async applyMiddleware(server: ApolloServer, express: Express) {\n`
+    content += `    return server.applyMiddleware({ app: express, path: '/graphql' })\n`
+    content += `  }\n\n`
+    content += `  public async listen(callback?: (port: number) => void) {\n`
+    content += `    this.httpServer.listen({\n`
+    content += `      port: 3000\n`
+    content += `    })\n\n`
+    content += `    callback && callback(3000)\n`
     content += `  }\n`
     content += `}\n`
 
     writeFileSync(join(SRC_PATH, 'app', 'server', 'application.ts'), content)
   }
 
+  private createServer() {
+    let content = ''
+    content += `import Application from './application'\n`
+    content += `import { inject, injectable } from 'inversify'\n`
+    content += `import { logger } from '@app/app/lib'\n\n`
+    content += `@injectable()\n`
+    content += `export default class Server {\n`
+    content += `  private application: Application\n\n`
+    content += `  constructor(\n`
+    content += `    @inject(Application) application: Application\n`
+    content += `  ) {\n`
+    content += `    this.application = application\n`
+    content += `  }\n\n`
+    content += `  public async createServer() {\n`
+    content += `    await this.application.initialize()\n`
+    content += `    await this.application.listen((port: number) => {\n`
+    content += '      logger.app(`Graphql Server running on http://localhost:${port}/graphql`)\n'
+    content += '      logger.app(`Express Server running on port ${port} `)\n'
+    content += `    })\n`
+    content += `  }\n`
+    content += `}\n`
+
+    writeFileSync(join(SRC_PATH, 'app', 'server', 'server.ts'), content)
+  }
+
   private createIndex() {
     let content = ''
     content += `import 'module-alias/register'\n`
     content += `import 'reflect-metadata'\n`
-    content += `import Application from '@app/app/server/application'\n`
     content += `import container from '@app/utils/dependency-injection'\n\n`
-    content += `const application: Application = container.resolve(Application)\n`
-    content += `application.initialize()\n\n`
-    this.schemaParsed.map(parser => {
+    content += `import Server from '@app/app/server/server'\n\n`
+    content += `const server: Server = container.resolve(Server)\n`
+    content += `server.createServer()\n\n`
+    this.generatorServer.schemaParsed().map(parser => {
       const packageName = parser.package
       const serviceName = capitalize(packageName)
       content += `import gRPC${serviceName}Server from '@app/grpc/${packageName}'\n`
@@ -129,13 +178,13 @@ export default class GenerateApp {
 
   private createModelExported() {
     let content = ''
-    this.schemaParsed.map(parser => {
+    this.generatorServer.schemaParsed().map(parser => {
       const packageName = parser.package
       const serviceName = capitalize(packageName)
       content += `import ${serviceName}Model, { I${serviceName}, ${serviceName}Type } from '@app/database/models/${packageName}.model'\n`
     })
     content += `export {\n`
-    this.schemaParsed.map(parser => {
+    this.generatorServer.schemaParsed().map(parser => {
       const packageName = parser.package
       const serviceName = capitalize(packageName)
       content += `  ${serviceName}Model,\n`
@@ -149,7 +198,7 @@ export default class GenerateApp {
 
   private createIndividualRepository() {
     this.createRepository()
-    this.schemaParsed.map(parser => {
+    this.generatorServer.schemaParsed().map(parser => {
       let content = ''
       const packageName = parser.package
       const serviceName = capitalize(packageName)
@@ -159,7 +208,6 @@ export default class GenerateApp {
       content += `export default class ${serviceName}Repository extends Repository<${serviceName}Type> {\n`
       content += `  public model = ${serviceName}Model\n`
       content += `}\n`
-
       writeFileSync(join(SRC_PATH, 'repositories', `${packageName}.repository.ts`), content)
     })
 
@@ -169,6 +217,7 @@ export default class GenerateApp {
     this.copyFile()
     this.createDI()
     this.createApplication()
+    this.createServer()
     this.createIndex()
     this.createModelExported()
     this.createIndividualRepository()
