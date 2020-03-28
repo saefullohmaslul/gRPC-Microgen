@@ -7,6 +7,7 @@ import { protoParser } from './lib/proto-parser.lib'
 import { IProtoParser } from './interface/proto-parser.interface'
 import { SRC_PATH } from './global/constant'
 import { IProtoSchema } from './interface/proto-schema.interface'
+import config from './config'
 
 export default class GeneratorServer {
   private schemaDirectory: string
@@ -151,12 +152,14 @@ export default class GeneratorServer {
   }
 
   public createIndexServices() {
+    let portStart = config.PORT_START
     this.createClassServices()
     this.schemaParsed().map((parser: IProtoSchema) => {
       let content = ''
       const packageName = parser.package
       const serviceName = capitalize(parser.package)
       const service = `${serviceName}Service`
+      portStart += 1
 
       content += `import grpc from 'grpc'\n`
       content += `import { injectable, inject } from 'inversify'\n\n`
@@ -173,9 +176,9 @@ export default class GeneratorServer {
       content += `    this.server.addService(${service}Service, gRPC${service})\n`
       content += `  }\n\n`
       content += `  public initialize() {\n`
-      content += `    this.server.bind('0.0.0.0:3001', grpc.ServerCredentials.createInsecure())\n`
+      content += `    this.server.bind('0.0.0.0:${portStart}', grpc.ServerCredentials.createInsecure())\n`
       content += `    this.server.start()\n`
-      content += `    logger.log('gRPC ${service} started, listening: localhost:3001')\n`
+      content += `    logger.log('gRPC ${service} started, listening: localhost:${portStart}')\n`
       content += `  }\n`
       content += `}\n`
 
