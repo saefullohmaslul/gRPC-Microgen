@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs-extra"
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs-extra"
 import { join } from 'path'
 import capitalize from 'capitalize'
 
@@ -40,6 +40,10 @@ export default class GeneratorDatabase {
         .join(capitalize(parser.package))
         .replace('fields: string', interfaceFields)
         .replace('schema: String', schemaFields)
+
+      if (!existsSync(join(SRC_PATH, 'database', 'models'))) {
+        mkdirSync(join(SRC_PATH, 'database', 'models'))
+      }
 
       writeFileSync(join(SRC_PATH, 'database', 'models', `${parser.package}.model.ts`), generate)
     })

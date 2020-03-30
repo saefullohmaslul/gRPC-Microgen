@@ -7,15 +7,18 @@
     "tsc": "tsc",
     "build": "npm-run-all tsc copy",
     "copy": "copyfiles -u 1 src/**/*.graphql dist",
-    "generate": "cross-env DEBUG=server* ts-node microgen",
+    "generate:server": "cross-env DEBUG=server* ts-node microgen",
+    "generate:proto": "cross-env DEBUG=server* ts-node microgen/proto.ts",
     "clean:dist": "rimraf dist",
     "clean:src": "rimraf src",
     "server:dev": "cross-env DEBUG=server* NODE_ENV=development npm run start:watch",
     "server:prod": "cross-env DEBUG=server* NODE_ENV=production npm-run-all clean:dist build clean:src start",
+    "server:docker": "docker-compose up --build",
     "start": "node .",
     "start:watch": "nodemon",
-    "start:dev": "npm-run-all generate server:dev",
-    "start:prod": "npm-run-all generate server:prod"
+    "start:dev": "npm-run-all generate:proto generate:server server:dev",
+    "start:prod": "npm-run-all generate:proto generate:server server:prod",
+    "start:docker": "npm-run-all generate:proto server:docker"
   },
   "_moduleAliases": {
     "@app": "./dist"

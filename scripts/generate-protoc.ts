@@ -15,19 +15,22 @@ export const generateProto = () => {
   }
 
   const files = readdirSync(join(ROOT_DIR, 'schema'))
+
   files.map(file => {
     const FILE = file.split('.proto').join('')
 
     if (!existsSync(join(PROTO_DEST, `${FILE}`))) {
       mkdirSync(join(PROTO_DEST, `${FILE}`))
     }
-    cp.execSync(`protoc-gen-grpc \
+    cp.execSync(`./scripts/protoc \
+    --plugin=protoc-gen-grpc=./node_modules/protoc-gen-grpc-ts/bin/grpc_node_plugin \
     --js_out=import_style=commonjs,binary:${PROTO_DEST}/${FILE} \
     --grpc_out=${PROTO_DEST}/${FILE} \
     --proto_path ./schema \
     ${file}`)
 
-    cp.execSync(`protoc-gen-grpc-ts \
+    cp.execSync(`./scripts/protoc \
+    --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts-plugin \
     --ts_out=service=true:${PROTO_DEST}/${FILE} \
     --proto_path ./schema \
     ${file}`)

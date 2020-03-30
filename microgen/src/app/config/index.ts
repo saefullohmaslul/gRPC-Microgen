@@ -7,6 +7,8 @@ export default {
 
   },
   db: {
-    uri: process.env.MONGO_URI
+    uri: process.env.MONGO_URI,
+    user: process.env.DB_USER,
+    pass: process.env.DB_PASS
   }
 }

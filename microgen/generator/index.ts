@@ -36,10 +36,13 @@ export default class Generator {
     generateProto()
   }
 
+  public proto() {
+    this.generatorGraphql.createProto()
+    this.generateProtoType()
+  }
+
   public generate() {
     try {
-      this.generatorGraphql.createProto()
-      this.generateProtoType()
       this.generatorServer.createIndexServices()
       this.generatorApp.generateApp()
       this.generatorDatabase.model()
