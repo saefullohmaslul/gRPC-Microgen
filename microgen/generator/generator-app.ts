@@ -1,7 +1,7 @@
 import { copySync } from 'fs-extra'
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { SRC_PATH } from './global/constant'
+import { SRC_PATH, MICROGEN_PATH } from '../global/constant'
 import GeneratorServer from './generator-server'
 import capitalize from 'capitalize'
 
@@ -27,7 +27,7 @@ export default class GenerateApp {
       mkdirSync(join(SRC_PATH, 'repositories'))
     }
 
-    copySync(join(__dirname, 'src'), join(__dirname, '..', 'src'))
+    copySync(join(MICROGEN_PATH, 'src'), SRC_PATH)
   }
 
   private createDI() {

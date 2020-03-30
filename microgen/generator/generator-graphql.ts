@@ -1,8 +1,8 @@
 import { parse } from 'graphql'
 import { join } from 'path'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
-import { IGraphqlSchema, IDefinition } from './interface/graphql-schema.interface'
-import { SCHEMA_PATH, PROTOS_PATH, SRC_PATH } from './global/constant'
+import { IGraphqlSchema, IDefinition } from '../global/interface/graphql-schema.interface'
+import { SCHEMA_PATH, PROTOS_PATH, SRC_PATH } from '../global/constant'
 
 export default class GeneratorGraphql {
   private graphqlParser: IGraphqlSchema

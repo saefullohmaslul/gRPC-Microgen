@@ -1,5 +1,5 @@
 import rimraf from 'rimraf'
-import { PROTOS_PATH } from './global/constant'
+import { PROTOS_PATH } from '../global/constant'
 
 export default class GeneratorLatency {
   public deleteLatency() {

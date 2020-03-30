@@ -1,9 +1,9 @@
 import Generator from './generator'
-import GeneratorServer from './generator-server'
-import GenerateApp from './generator-app'
-import GeneratorDatabase from './generator-database'
-import GeneratorLatency from './generator-latency'
-import GeneratorGraphql from './generator-graphql'
+import GeneratorServer from './generator/generator-server'
+import GenerateApp from './generator/generator-app'
+import GeneratorDatabase from './generator/generator-database'
+import GeneratorLatency from './generator/generator-latency'
+import GeneratorGraphql from './generator/generator-graphql'
 
 const generatorServer = new GeneratorServer()
 const generatorApp = new GenerateApp()

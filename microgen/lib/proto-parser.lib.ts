@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 const protoSchema = require('protocol-buffers-schema')
 
-import { IProtoSchema } from '../interface/proto-schema.interface'
+import { IProtoSchema } from '../global/interface/proto-schema.interface'
 
 export const protoParser = (dirname: string): {
   parsers: IProtoSchema[],

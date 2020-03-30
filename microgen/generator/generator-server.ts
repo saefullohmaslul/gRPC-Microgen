@@ -3,18 +3,18 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { singular } from 'pluralize'
 
-import { protoParser } from './lib/proto-parser.lib'
-import { IProtoParser } from './interface/proto-parser.interface'
-import { SRC_PATH } from './global/constant'
-import { IProtoSchema } from './interface/proto-schema.interface'
-import config from './config'
+import { protoParser } from '../lib/proto-parser.lib'
+import { IProtoParser } from '../global/interface/proto-parser.interface'
+import { SRC_PATH, PROTOS_PATH } from '../global/constant'
+import { IProtoSchema } from '../global/interface/proto-schema.interface'
+import config from '../config'
 
 export default class GeneratorServer {
   private schemaDirectory: string
   private protoParser: (dirname: string) => IProtoParser
 
   constructor() {
-    this.schemaDirectory = join(__dirname, '..', 'schema')
+    this.schemaDirectory = PROTOS_PATH
     this.protoParser = protoParser
   }
 

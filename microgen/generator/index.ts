@@ -1,13 +1,13 @@
-import cp from 'child_process'
-import { join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
 
-import logger from './lib/debugger.lib'
+import logger from '../lib/debugger.lib'
 import GeneratorServer from './generator-server'
 import GeneratorApp from './generator-app'
 import GeneratorDatabase from './generator-database'
 import GeneratorLatency from './generator-latency'
 import GeneratorGraphql from './generator-graphql'
+import { generateProto } from '../../scripts/generate-protoc'
+import { SRC_PATH } from '../global/constant'
 
 export default class Generator {
   private generatorServer: GeneratorServer
@@ -31,10 +31,9 @@ export default class Generator {
   }
 
   private generateProtoType() {
-    if (!existsSync(join(__dirname, '..', 'src'))) mkdirSync(join(__dirname, '..', 'src'))
+    if (!existsSync(SRC_PATH)) mkdirSync(SRC_PATH)
 
-    cp.execSync(`chmod +x ${join(__dirname, '..', 'scripts', 'generate-protoc.sh')}`)
-    cp.execSync(join(__dirname, '..', 'scripts', 'generate-protoc.sh'))
+    generateProto()
   }
 
   public generate() {

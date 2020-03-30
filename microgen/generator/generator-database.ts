@@ -3,6 +3,7 @@ import { join } from 'path'
 import capitalize from 'capitalize'
 
 import GeneratorServer from "./generator-server"
+import { SRC_PATH, MICROGEN_PATH } from "../global/constant"
 
 export default class GeneratorDatabase {
   private generatorServer: GeneratorServer
@@ -12,7 +13,7 @@ export default class GeneratorDatabase {
 
   model() {
     this.generatorServer.schemaParsed().map(parser => {
-      const model = readFileSync(join(__dirname, 'example', 'models', 'example.model.ts'))
+      const model = readFileSync(join(MICROGEN_PATH, 'example', 'models', 'example.model.ts'))
       const fields = parser.messages.filter(val => val.name === capitalize(parser.package))[0]?.fields
       let interfaceFields: string = ''
       let schemaFields: string = ''
@@ -40,7 +41,7 @@ export default class GeneratorDatabase {
         .replace('fields: string', interfaceFields)
         .replace('schema: String', schemaFields)
 
-      writeFileSync(join(__dirname, '..', 'src', 'database', 'models', `${parser.package}.model.ts`), generate)
+      writeFileSync(join(SRC_PATH, 'database', 'models', `${parser.package}.model.ts`), generate)
     })
   }
 }
