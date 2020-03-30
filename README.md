@@ -17,7 +17,41 @@ Features that we have and will make include:
 - Generate each table and field which is needed by the server from the graphql schema
 - Generate flow based on graphql schema (TODO)
 - Graphql server with gRPC microservices (TODO)
-- Docker and docker-compose (TODO)
+- Docker and docker-compose
+
+## How to Run Project
+
+To running project, You can choose to use local or docker.
+
+## Running Project via Local
+
+To running project via local, You can follow this step:
+
+1. Install MongoDB
+
+    See the documentation to install MongoDB on your computer: [documentation](https://docs.mongodb.com/manual/installation/)
+
+1. Running Server
+
+    - Before running the server, change ```.env``` based your MongoDB configuration
+    - Running local server with this command:
+
+      ```bash
+      npm run start:dev
+      ```
+
+## Running Project via Docker Compose
+
+To running project docker compose, You can follow this step:
+
+1. Install Docker and Docker Compose
+1. Running Server
+
+    Running docker compose with command:
+
+    ```bash
+    npm run start:docker
+    ```
 
 ## Project Structure
 
