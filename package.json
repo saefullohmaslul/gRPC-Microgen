@@ -13,7 +13,7 @@
     "clean:src": "rimraf src",
     "server:dev": "cross-env DEBUG=server* NODE_ENV=development npm run start:watch",
     "server:prod": "cross-env DEBUG=server* NODE_ENV=production npm-run-all clean:dist build clean:src start",
-    "server:docker": "docker-compose up --build",
+    "server:docker": "docker-compose up",
     "start": "node .",
     "start:watch": "nodemon",
     "start:dev": "npm-run-all generate:proto generate:server server:dev",
