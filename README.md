@@ -41,7 +41,7 @@ Features that we have and will make include:
 |  └── index.ts                # App Entry point
 |
 ├── .env                       # Example environment
-├── .env.generator             # Environment which is required to generate
+├── .env.dev                   # Environment which is required to generate
 ├── .gitignore                 # Git ignore
 ├── LICENSE                    # The license file
 ├── README.md                  # This file

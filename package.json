@@ -4,19 +4,18 @@
   "description": "microservices generator with gRPC architecture",
   "main": "dist/index.js",
   "scripts": {
-    "test": "jest",
-    "copyfile": "copyfiles -u 1 src/**/*.graphql dist",
-    "clean": "rimraf dist",
-    "clean:src": "rimraf src",
-    "build": "tsc",
-    "postbuild": "npm run copyfile",
+    "tsc": "tsc",
+    "build": "npm-run-all tsc copy",
+    "copy": "copyfiles -u 1 src/**/*.graphql dist",
     "generate": "cross-env DEBUG=server* ts-node microgen",
+    "clean:dist": "rimraf dist",
+    "clean:src": "rimraf src",
+    "server:dev": "cross-env DEBUG=server* NODE_ENV=development npm run start:watch",
+    "server:prod": "cross-env DEBUG=server* NODE_ENV=production npm-run-all clean:dist build clean:src start",
     "start": "node .",
     "start:watch": "nodemon",
-    "prestart:dev": "npm run generate",
-    "prestart:prod": "npm run generate",
-    "start:dev": "cross-env DEBUG=server* NODE_ENV=development npm run start:watch",
-    "start:prod": "cross-env DEBUG=server* NODE_ENV=production npm-run-all clean build clean:src start"
+    "start:dev": "npm-run-all generate server:dev",
+    "start:prod": "npm-run-all generate server:prod"
   },
   "_moduleAliases": {
     "@app": "./dist"

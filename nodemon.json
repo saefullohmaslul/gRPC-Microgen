@@ -4,5 +4,5 @@
   ],
   "legacyWatch": true,
   "ext": "ts",
-  "exec": "npm-run-all clean build start"
+  "exec": "npm-run-all clean:dist build start"
 }
