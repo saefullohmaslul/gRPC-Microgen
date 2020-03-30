@@ -23,7 +23,7 @@ Features that we have and will make include:
 
 To running project, You can choose to use local or docker.
 
-## Running Project via Local
+### Running Project via Local
 
 To running project via local, You can follow this step:
 
@@ -40,7 +40,7 @@ To running project via local, You can follow this step:
       npm run start:dev
       ```
 
-## Running Project via Docker Compose
+### Running Project via Docker Compose
 
 To running project docker compose, You can follow this step:
 
