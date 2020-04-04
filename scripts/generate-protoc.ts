@@ -4,11 +4,14 @@ import cp from 'child_process'
 
 import { ROOT_DIR } from '../microgen/global/constant'
 
-const PROTO_DEST = join(ROOT_DIR, 'src', 'proto')
+const PROTO_DEST = join(ROOT_DIR, 'src', 'grpc', 'proto')
 
 export const generateProto = () => {
   if (!existsSync(join(ROOT_DIR, 'src'))) {
     mkdirSync(join(ROOT_DIR, 'src'))
+  }
+  if (!existsSync(join(ROOT_DIR, 'src', 'grpc'))) {
+    mkdirSync(join(ROOT_DIR, 'src', 'grpc'))
   }
   if (!existsSync(PROTO_DEST)) {
     mkdirSync(PROTO_DEST)

@@ -66,7 +66,7 @@ export default class GeneratorServer {
       parser.messages.map((message, index) => {
         content += index === parser.messages.length - 1 ? `${message.name} ` : `${message.name}, `
       })
-      content += `} from '@app/proto/${parser.package}/${parser.package}_pb'\n`
+      content += `} from '@app/grpc/proto/${parser.package}/${parser.package}_pb'\n`
       content += `import ${serviceName}Repository from '@app/repositories/${packageName}.repository'\n`
       content += `import { injectable, inject } from 'inversify'\n\n`
       content += `@injectable()\n`
@@ -175,7 +175,7 @@ export default class GeneratorServer {
       content += `import grpc from 'grpc'\n`
       content += `import { injectable, inject } from 'inversify'\n\n`
       content += `import { logger } from '@app/app/lib'\n`
-      content += `import { ${serviceName}ServiceService } from '@app/proto/${packageName}/${packageName}_grpc_pb'\n`
+      content += `import { ${serviceName}ServiceService } from '@app/grpc/proto/${packageName}/${packageName}_grpc_pb'\n`
       content += `import ${service} from '@app/grpc/server/${packageName}/${packageName}-service'\n\n`
       content += `@injectable()\n`
       content += `export default class gRPC${serviceName}Server {\n`
