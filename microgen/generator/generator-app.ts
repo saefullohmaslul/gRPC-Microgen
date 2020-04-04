@@ -57,6 +57,7 @@ export default class GenerateApp {
     content += `import express, { Express } from 'express'\n`
     content += `import { ApolloServer } from 'apollo-server-express'\n`
     content += `import { createServer, Server } from 'http'\n`
+    content += `import config from '@app/app/config'\n`
     content += `import schema from '@app/graphql/schema'\n`
     content += `import MongoConnection from '@app/database/connection.database'\n\n`
     content += `@injectable()\n`
@@ -86,10 +87,11 @@ export default class GenerateApp {
     content += `    return server.applyMiddleware({ app: express, path: '/graphql' })\n`
     content += `  }\n\n`
     content += `  public async listen(callback?: (port: number) => void) {\n`
+    content += `    const port = parseInt(config.app.port as string) || 3000\n`
     content += `    this.httpServer.listen({\n`
-    content += `      port: 3000\n`
+    content += `      port\n`
     content += `    })\n\n`
-    content += `    callback && callback(3000)\n`
+    content += `    callback && callback(port)\n`
     content += `  }\n`
     content += `}\n`
 

@@ -4,7 +4,7 @@ dotenv.config()
 
 export default {
   app: {
-
+    port: process.env.PORT
   },
   db: {
     uri: process.env.MONGO_URI,
