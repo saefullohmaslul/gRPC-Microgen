@@ -73,44 +73,88 @@ export default class GeneratorGraphql {
   }
 
   public createGraphqlServer() {
-    let contentGraphql: string = ''
-    let contentResolver: string = ''
-    let contentSchema: string = ''
-    contentGraphql += `type Query {\n`
-    contentGraphql += `  helloWorld: String!\n`
-    contentGraphql += `}`
-
-    contentResolver += `import { IResolvers } from 'graphql-tools'\n\n`
-    contentResolver += `const userResolver: IResolvers = {\n`
-    contentResolver += `  Query: {\n`
-    contentResolver += `    helloWorld(_: void, args: void): string {\n`
-    contentResolver += `      return 'Hello World'\n`
-    contentResolver += `    }\n`
-    contentResolver += `  }\n`
-    contentResolver += `}\n\n`
-    contentResolver += `export default userResolver\n`
-
-    contentSchema += `import 'graphql-import-node'\n`
-    contentSchema += `import { makeExecutableSchema } from 'graphql-tools'\n`
-    contentSchema += `import { GraphQLSchema } from 'graphql'\n\n`
-    contentSchema += `import userType from './user/user.graphql'\n`
-    contentSchema += `import userResolver from './user/user.resolver'\n\n`
-    contentSchema += `const schema: GraphQLSchema = makeExecutableSchema({\n`
-    contentSchema += `  typeDefs: [userType],\n`
-    contentSchema += `  resolvers: [userResolver]\n`
-    contentSchema += `})\n\n`
-    contentSchema += `export default schema\n`
-
     if (!existsSync(join(SRC_PATH, 'app', 'graphql'))) {
       mkdirSync(join(SRC_PATH, 'app', 'graphql'))
     }
 
-    if (!existsSync(join(SRC_PATH, 'app', 'graphql', 'user'))) {
-      mkdirSync(join(SRC_PATH, 'app', 'graphql', 'user'))
-    }
 
-    writeFileSync(join(SRC_PATH, 'app', 'graphql', 'user', `user.graphql`), contentGraphql)
-    writeFileSync(join(SRC_PATH, 'app', 'graphql', 'user', `user.resolver.ts`), contentResolver)
+    let contentSchema: string = ''
+    this.graphqlParser.definitions.map((definition: IDefinition) => {
+      const typeName = definition.name.value
+
+      if (!existsSync(join(SRC_PATH, 'app', 'graphql', typeName.toLowerCase()))) {
+        mkdirSync(join(SRC_PATH, 'app', 'graphql', typeName.toLowerCase()))
+      }
+
+      let contentResolver: string = ''
+      let contentGraphql: string = ''
+      contentGraphql += `type ${typeName} {\n`
+      definition.fields.map(field => {
+        contentGraphql += `  ${field.name.value}: ${field.type.name ? field.type.name.value : `[${field.type.type.name.value}]`}\n`
+      })
+      contentGraphql += `}\n\n`
+      contentGraphql += `type Query {\n`
+      contentGraphql += `  ${typeName.toLowerCase()}: ${typeName}\n`
+      contentGraphql += `}\n`
+
+      contentResolver += `import { IResolvers } from 'graphql-tools'\n\n`
+      definition.fields.map(field => {
+        if (field.type.name && !this.primitiveTypes.includes(field.type.name.value) || !field.type.name) {
+          const check = field.type.name ? field.type.name.value : field.type.type.name.value
+          contentResolver += `import { ${check} } from '../${check.toLowerCase()}/${check.toLowerCase()}.resolver'\n`
+        }
+      })
+      contentResolver += `\nexport interface ${typeName} {\n`
+      definition.fields.map(field => {
+        contentResolver += `  ${field.name.value}?: ${field.type.name ? field.type.name.value : `${field.type.type.name.value}[]`}\n`
+      })
+      contentResolver += `}\n\n`
+      contentResolver += `const ${typeName.toLowerCase()}Resolver: IResolvers = {\n`
+      contentResolver += `  Query: {\n`
+      contentResolver += `    ${typeName.toLowerCase()}: (_: void, args: void): ${typeName} => {\n`
+      contentResolver += `      return {\n`
+      contentResolver += `        email: 'email'\n`
+      contentResolver += `      }\n`
+      contentResolver += `    }\n`
+      contentResolver += `  }\n`
+      contentResolver += `}\n\n`
+      contentResolver += `export default ${typeName.toLowerCase()}Resolver\n`
+
+      writeFileSync(join(SRC_PATH, 'app', 'graphql', typeName.toLowerCase(), `${typeName.toLowerCase()}.graphql`), contentGraphql)
+      writeFileSync(join(SRC_PATH, 'app', 'graphql', typeName.toLowerCase(), `${typeName.toLowerCase()}.resolver.ts`), contentResolver)
+    })
+
+    contentSchema += `import 'graphql-import-node'\n`
+    contentSchema += `import { makeExecutableSchema } from 'graphql-tools'\n`
+    contentSchema += `import { merge } from 'lodash'\n`
+    contentSchema += `import { GraphQLSchema } from 'graphql'\n\n`
+    contentSchema += `import typeDef from './schema.graphql'\n\n`
+    this.graphqlParser.definitions.map((definition: IDefinition) => {
+      const typeName = definition.name.value
+      contentSchema += `import ${typeName.toLowerCase()}Type from './${typeName.toLowerCase()}/${typeName.toLowerCase()}.graphql'\n`
+      contentSchema += `import ${typeName.toLowerCase()}Resolver from './${typeName.toLowerCase()}/${typeName.toLowerCase()}.resolver'\n\n`
+    })
+    contentSchema += `const schema: GraphQLSchema = makeExecutableSchema({\n`
+    contentSchema += `  typeDefs: [\n`
+    contentSchema += `    typeDef,\n`
+    this.graphqlParser.definitions.map((definition: IDefinition) => {
+      const typeName = definition.name.value
+      contentSchema += `    ${typeName.toLowerCase()}Type,\n`
+    })
+    contentSchema += `  ],\n`
+    contentSchema += `  resolvers: merge(\n`
+    this.graphqlParser.definitions.map((definition: IDefinition) => {
+      const typeName = definition.name.value
+      contentSchema += `    ${typeName.toLowerCase()}Resolver,\n`
+    })
+    contentSchema += `  ),\n`
+    contentSchema += `})\n\n`
+    contentSchema += `export default schema\n`
+
     writeFileSync(join(SRC_PATH, 'app', 'graphql', `schema.ts`), contentSchema)
+
+    let schemaGraphql = ''
+    schemaGraphql += `type Query { default: String }`
+    writeFileSync(join(SRC_PATH, 'app', 'graphql', `schema.graphql`), schemaGraphql)
   }
 }

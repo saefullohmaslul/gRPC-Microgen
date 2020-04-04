@@ -1,8 +1,8 @@
 {
   "watch": [
-    "src"
+    "microgen"
   ],
   "legacyWatch": true,
   "ext": "ts",
-  "exec": "npm-run-all clean:dist build start"
+  "exec": "npm-run-all generate:proto generate:server clean:dist build start"
 }

@@ -2,7 +2,7 @@ version: '3'
 services:
   app_service:
     image: node:11
-    container_name: microservices
+    container_name: grpc_microgen
     build: .
     depends_on:
       - mongodb_container
