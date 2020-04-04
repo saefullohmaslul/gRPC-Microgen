@@ -41,7 +41,7 @@ export default class GenerateApp {
     this.generatorServer.schemaParsed().map(parser => {
       const packageName = parser.package
       const serviceName = capitalize(packageName)
-      content += `import Grpc${serviceName}Service from '@app/grpc/${packageName}/${packageName}-service'\n`
+      content += `import Grpc${serviceName}Service from '@app/grpc/server/${packageName}/${packageName}-service'\n`
       content += `container.bind<Grpc${serviceName}Service>(Grpc${serviceName}Service).toSelf()\n\n`
       content += `import ${serviceName}Repository from '@app/repositories/${packageName}.repository'\n`
       content += `container.bind<${serviceName}Repository>(${serviceName}Repository).toSelf()\n\n`
@@ -57,7 +57,7 @@ export default class GenerateApp {
     content += `import express, { Express } from 'express'\n`
     content += `import { ApolloServer } from 'apollo-server-express'\n`
     content += `import { createServer, Server } from 'http'\n`
-    content += `import schema from '@app/app/graphql/schema'\n`
+    content += `import schema from '@app/graphql/schema'\n`
     content += `import MongoConnection from '@app/database/connection.database'\n\n`
     content += `@injectable()\n`
     content += `export default class Application {\n`
@@ -132,7 +132,7 @@ export default class GenerateApp {
     this.generatorServer.schemaParsed().map(parser => {
       const packageName = parser.package
       const serviceName = capitalize(packageName)
-      content += `import gRPC${serviceName}Server from '@app/grpc/${packageName}'\n`
+      content += `import gRPC${serviceName}Server from '@app/grpc/server/${packageName}'\n`
       content += `const grpc${serviceName}Server: gRPC${serviceName}Server = container.resolve(gRPC${serviceName}Server)\n`
       content += `grpc${serviceName}Server.initialize()\n\n`
     })

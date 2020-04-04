@@ -73,17 +73,16 @@ export default class GeneratorGraphql {
   }
 
   public createGraphqlServer() {
-    if (!existsSync(join(SRC_PATH, 'app', 'graphql'))) {
-      mkdirSync(join(SRC_PATH, 'app', 'graphql'))
+    if (!existsSync(join(SRC_PATH, 'graphql'))) {
+      mkdirSync(join(SRC_PATH, 'graphql'))
     }
-
 
     let contentSchema: string = ''
     this.graphqlParser.definitions.map((definition: IDefinition) => {
       const typeName = definition.name.value
 
-      if (!existsSync(join(SRC_PATH, 'app', 'graphql', typeName.toLowerCase()))) {
-        mkdirSync(join(SRC_PATH, 'app', 'graphql', typeName.toLowerCase()))
+      if (!existsSync(join(SRC_PATH, 'graphql', typeName.toLowerCase()))) {
+        mkdirSync(join(SRC_PATH, 'graphql', typeName.toLowerCase()))
       }
 
       let contentResolver: string = ''
@@ -93,7 +92,7 @@ export default class GeneratorGraphql {
         contentGraphql += `  ${field.name.value}: ${field.type.name ? field.type.name.value : `[${field.type.type.name.value}]`}\n`
       })
       contentGraphql += `}\n\n`
-      contentGraphql += `type Query {\n`
+      contentGraphql += `extend type Query {\n`
       contentGraphql += `  ${typeName.toLowerCase()}: ${typeName}\n`
       contentGraphql += `}\n`
 
@@ -120,8 +119,8 @@ export default class GeneratorGraphql {
       contentResolver += `}\n\n`
       contentResolver += `export default ${typeName.toLowerCase()}Resolver\n`
 
-      writeFileSync(join(SRC_PATH, 'app', 'graphql', typeName.toLowerCase(), `${typeName.toLowerCase()}.graphql`), contentGraphql)
-      writeFileSync(join(SRC_PATH, 'app', 'graphql', typeName.toLowerCase(), `${typeName.toLowerCase()}.resolver.ts`), contentResolver)
+      writeFileSync(join(SRC_PATH, 'graphql', typeName.toLowerCase(), `${typeName.toLowerCase()}.graphql`), contentGraphql)
+      writeFileSync(join(SRC_PATH, 'graphql', typeName.toLowerCase(), `${typeName.toLowerCase()}.resolver.ts`), contentResolver)
     })
 
     contentSchema += `import 'graphql-import-node'\n`
@@ -151,10 +150,10 @@ export default class GeneratorGraphql {
     contentSchema += `})\n\n`
     contentSchema += `export default schema\n`
 
-    writeFileSync(join(SRC_PATH, 'app', 'graphql', `schema.ts`), contentSchema)
+    writeFileSync(join(SRC_PATH, 'graphql', `schema.ts`), contentSchema)
 
     let schemaGraphql = ''
     schemaGraphql += `type Query { default: String }`
-    writeFileSync(join(SRC_PATH, 'app', 'graphql', `schema.graphql`), schemaGraphql)
+    writeFileSync(join(SRC_PATH, 'graphql', `schema.graphql`), schemaGraphql)
   }
 }

@@ -33,13 +33,21 @@ export default class GeneratorServer {
     if (!existsSync(join(SRC_PATH, 'grpc'))) {
       mkdirSync(join(SRC_PATH, 'grpc'))
     }
+
+    if (!existsSync(join(SRC_PATH, 'grpc', 'server'))) {
+      mkdirSync(join(SRC_PATH, 'grpc', 'server'))
+    }
+
+    if (!existsSync(join(SRC_PATH, 'grpc', 'client'))) {
+      mkdirSync(join(SRC_PATH, 'grpc', 'client'))
+    }
   }
 
   private createServiceFolder() {
     this.createGrpcFolder()
     this.schemaParsed().map(parser => {
-      if (!existsSync(join(SRC_PATH, 'grpc', parser.package))) {
-        mkdirSync(join(SRC_PATH, 'grpc', parser.package))
+      if (!existsSync(join(SRC_PATH, 'grpc', 'server', parser.package))) {
+        mkdirSync(join(SRC_PATH, 'grpc', 'server', parser.package))
       }
     })
   }
@@ -150,7 +158,7 @@ export default class GeneratorServer {
       })
       content += `}`
 
-      writeFileSync(join(SRC_PATH, 'grpc', parser.package, `${parser.package}-service.ts`), content)
+      writeFileSync(join(SRC_PATH, 'grpc', 'server', parser.package, `${parser.package}-service.ts`), content)
     })
   }
 
@@ -168,7 +176,7 @@ export default class GeneratorServer {
       content += `import { injectable, inject } from 'inversify'\n\n`
       content += `import { logger } from '@app/app/lib'\n`
       content += `import { ${serviceName}ServiceService } from '@app/proto/${packageName}/${packageName}_grpc_pb'\n`
-      content += `import ${service} from '@app/grpc/${packageName}/${packageName}-service'\n\n`
+      content += `import ${service} from '@app/grpc/server/${packageName}/${packageName}-service'\n\n`
       content += `@injectable()\n`
       content += `export default class gRPC${serviceName}Server {\n`
       content += `  private server: grpc.Server\n\n`
@@ -185,7 +193,7 @@ export default class GeneratorServer {
       content += `  }\n`
       content += `}\n`
 
-      writeFileSync(join(SRC_PATH, 'grpc', packageName, `index.ts`), content)
+      writeFileSync(join(SRC_PATH, 'grpc', 'server', packageName, `index.ts`), content)
     })
   }
 }

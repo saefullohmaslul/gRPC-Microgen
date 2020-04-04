@@ -6,7 +6,8 @@
   "scripts": {
     "tsc": "tsc",
     "build": "npm-run-all tsc copy",
-    "copy": "copyfiles -u 1 src/**/*.graphql dist",
+    "copy": "copyfiles -u 1 src/**/**/*.graphql dist",
+    "pregenerate:server": "npm run generate:proto",
     "generate:server": "cross-env DEBUG=server* ts-node microgen",
     "generate:proto": "cross-env DEBUG=server* ts-node microgen/proto.ts",
     "clean:dist": "rimraf dist",
