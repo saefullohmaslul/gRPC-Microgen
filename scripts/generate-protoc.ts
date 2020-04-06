@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync } from 'fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import cp from 'child_process'
 
@@ -36,5 +36,8 @@ export const generateProto = () => {
     --ts_out=service=true:${PROTO_DEST}/${FILE} \
     --proto_path ./schema \
     ${file}`)
+
+    const generatedFile = readFileSync(join(PROTO_DEST, FILE, `${FILE}_grpc_pb.js`)).toString().replace('new Buffer', 'Buffer.from')
+    writeFileSync(join(PROTO_DEST, FILE, `${FILE}_grpc_pb.js`), generatedFile)
   })
 }
